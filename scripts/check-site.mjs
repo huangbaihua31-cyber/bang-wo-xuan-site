@@ -1,0 +1,14 @@
+import { readFile, stat } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const html = await readFile('site/index.html', 'utf8');
+assert.ok(html.includes('下载 APK 安装包'));
+assert.ok(html.includes('当前 APK 使用虚构地点演示'));
+assert.ok(html.includes('iPhone 暂无安装包'));
+assert.ok(!html.includes('chatgpt.site'));
+assert.ok(!html.includes('__APK_URL__'));
+for (const file of ['site/app.js', 'site/style.css', 'site/assets/logo.svg', 'site/assets/favicon.png']) assert.ok((await stat(file)).size);
+for (const match of html.matchAll(/href="#([^"\s]*)"/g)) if (match[1]) assert.ok(html.includes(`id="${match[1]}"`));
+const download = html.match(/id="apk-download" href="([^"]+)"/);
+assert.ok(download);
+assert.ok(/^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/download\//.test(download[1]), 'Set the real GitHub Release APK URL before publication.');
+console.log('PASS: website assets, internal links, honest feature descriptions and GitHub APK link.');
